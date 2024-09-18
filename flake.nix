@@ -28,15 +28,10 @@
           extraPackages = with pkgs; [
             rustc
             cargo
-            cargo-watch
             rustfmt
             clippy
-            rust-analyzer
-            codecrafters-cli
             redis
-            cargo-nextest
           ];
-
         };
 
         formatter = pkgs.nixfmt-rfc-style;
