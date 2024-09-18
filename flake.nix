@@ -34,6 +34,7 @@
             rust-analyzer
             codecrafters-cli
             redis
+            cargo-nextest
           ];
 
         };
