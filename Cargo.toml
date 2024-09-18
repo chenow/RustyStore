@@ -2,5 +2,9 @@
 name = "rusty-store"
 version = "0.1.0"
 authors = ["Antoine Cheneau <antoine.cheneau@outlook.com>"]
+edition = "2021"
 
 [dependencies]
+
+[dev-dependencies]
+redis = "*"
