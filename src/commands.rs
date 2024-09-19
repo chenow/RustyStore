@@ -1,4 +1,7 @@
+use log::info;
+
 pub fn process_command(command: String) -> String {
+    info!("Received command: {}", command);
     let parts: Vec<&str> = command.trim().split_whitespace().collect();
 
     match parts.as_slice() {
