@@ -1,5 +1,7 @@
 use std::str;
 
+use log::info;
+
 pub fn parse_commands(data: &[u8]) -> Result<Vec<Vec<String>>, String> {
     let mut idx = 0;
     let mut commands = Vec::new();
@@ -18,6 +20,7 @@ pub fn parse_commands(data: &[u8]) -> Result<Vec<Vec<String>>, String> {
         }
     }
 
+    info!("Parsed commands: {:?}", commands);
     Ok(commands)
 }
 
