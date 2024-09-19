@@ -5,6 +5,7 @@ authors = ["Antoine Cheneau <antoine.cheneau@outlook.com>"]
 edition = "2021"
 
 [dependencies]
+tokio = { version = "1.40.0", features = ["full"] }
 
 [dev-dependencies]
 redis = "*"
