@@ -43,7 +43,7 @@ async fn handle_client(mut socket: tokio::net::TcpStream) {
 
         match parser::parse_commands(data) {
             Ok(parsed_commands) => {
-                if let Some(command) = parsed_commands.get(0) {
+                for command in parsed_commands {
                     let response = commands::process_command(command.join(" "));
                     if let Err(_) = socket.write_all(response.as_bytes()).await {
                         break;
