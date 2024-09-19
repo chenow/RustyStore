@@ -1,16 +1,67 @@
-use redis::Connection;
+use redis::aio::MultiplexedConnection;
+use tokio;
 
-fn get_redis_connection() -> redis::RedisResult<Connection> {
+async fn get_redis_connection() -> redis::RedisResult<MultiplexedConnection> {
     let client = redis::Client::open("redis://127.0.0.1:6379")?;
-    client.get_connection()
+    client.get_multiplexed_tokio_connection().await
 }
 
-#[test]
-fn test_redis_ping() {
-    let mut con = get_redis_connection().expect("Failed to connect to Redis");
+#[tokio::test]
+async fn test_redis_ping() {
+    let mut con = get_redis_connection()
+        .await
+        .expect("Failed to connect to Redis");
 
     let pong: String = redis::cmd("PING")
-        .query(&mut con)
+        .query_async(&mut con)
+        .await
+        .expect("Failed to execute PING");
+    assert_eq!(pong, "PONG");
+}
+
+#[tokio::test]
+async fn test_two_clients_concurrently() {
+    let client1 = tokio::spawn(async {
+        let mut con = get_redis_connection()
+            .await
+            .expect("Client 1: Failed to connect to Redis");
+        let pong: String = redis::cmd("PING")
+            .query_async(&mut con)
+            .await
+            .expect("Client 1: Failed to execute PING");
+        assert_eq!(pong, "PONG");
+    });
+
+    let client2 = tokio::spawn(async {
+        let mut con = get_redis_connection()
+            .await
+            .expect("Client 2: Failed to connect to Redis");
+        let pong: String = redis::cmd("PING")
+            .query_async(&mut con)
+            .await
+            .expect("Client 2: Failed to execute PING");
+        assert_eq!(pong, "PONG");
+    });
+
+    // Wait for both clients to finish
+    let _ = tokio::try_join!(client1, client2).expect("Both clients should execute successfully");
+}
+
+#[tokio::test]
+async fn test_one_client_two_commands() {
+    let mut con = get_redis_connection()
+        .await
+        .expect("Failed to connect to Redis");
+
+    let pong: String = redis::cmd("PING")
+        .query_async(&mut con)
+        .await
+        .expect("Failed to execute PING");
+    assert_eq!(pong, "PONG");
+
+    let pong: String = redis::cmd("PING")
+        .query_async(&mut con)
+        .await
         .expect("Failed to execute PING");
     assert_eq!(pong, "PONG");
 }
