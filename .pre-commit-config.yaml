@@ -38,4 +38,3 @@ repos:
         description: Run all tests
         entry: cargo nextest run
         language: system
-        stages: [pre-push]

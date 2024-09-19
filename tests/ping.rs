@@ -1,7 +1,7 @@
 use redis::Connection;
 
 fn get_redis_connection() -> redis::RedisResult<Connection> {
-    let client = redis::Client::open("127.0.0.1:6379")?;
+    let client = redis::Client::open("redis://127.0.0.1:6379")?;
     client.get_connection()
 }
 
