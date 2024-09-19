@@ -2,33 +2,54 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
 mod commands;
+mod parser;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    println!("Server running on port 6379");
 
     loop {
-        let (mut socket, _) = listener.accept().await?;
-        println!("Accepted connection");
+        let (socket, _) = listener.accept().await?;
         tokio::spawn(async move {
-            let mut buf = [0; 1024];
-
-            // In a loop, read data from the socket and write the data back.
-            loop {
-                let n = match socket.read(&mut buf).await {
-                    // socket closed
-                    Ok(n) if n == 0 => return,
-                    Ok(n) => n,
-                    Err(e) => {
-                        eprintln!("failed to read from socket; err = {:?}", e);
-                        return;
-                    }
-                };
-
-                // Pass the buffer slice to get commands
-                let response = commands::handle_client_payload(&buf[..n]);
-                let _ = socket.write(&response).await;
-            }
+            handle_client(socket).await;
         });
+    }
+}
+
+async fn handle_client(mut socket: tokio::net::TcpStream) {
+    let mut buf = vec![0; 1024];
+
+    loop {
+        let n = match socket.read(&mut buf).await {
+            Ok(n) if n == 0 => {
+                // Connection was closed by the client
+                return;
+            }
+            Ok(n) => n,
+            Err(e) => {
+                eprintln!("Failed to read from socket; err = {:?}", e);
+                return;
+            }
+        };
+
+        let data = &buf[..n];
+
+        match parser::parse_commands(data) {
+            Ok(parsed_commands) => {
+                if let Some(command) = parsed_commands.get(0) {
+                    let response = commands::process_command(command.join(" "));
+                    if let Err(_) = socket.write_all(response.as_bytes()).await {
+                        break;
+                    }
+                }
+            }
+            Err(err) => {
+                let err_response = format!("-ERR {}\r\n", err);
+                if let Err(_) = socket.write_all(err_response.as_bytes()).await {
+                    break;
+                }
+            }
+        }
     }
 }
