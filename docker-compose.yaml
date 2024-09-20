@@ -1,0 +1,8 @@
+services:
+  rusty-store:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rusty-store
+    ports:
+      - 6379:6379

@@ -6,3 +6,7 @@ make run:
 
 make test:
 	cargo nextest run
+
+make deploy TAG:
+	docker build -t chenow/rusty-store:$(TAG) .
+	docker push chenow/rusty-store:$(TAG)

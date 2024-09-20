@@ -15,7 +15,7 @@ mod parser;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
-    let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let listener = TcpListener::bind("0.0.0.0:6379").await?;
     let db: Db = Arc::new(RwLock::new(HashMap::new()));
     info!("Server running on port 6379");
 
