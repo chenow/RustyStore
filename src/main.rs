@@ -1,9 +1,14 @@
+use db::Db;
 use env_logger;
 use log::{error, info};
+use std::collections::HashMap;
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
+use tokio::sync::RwLock;
 
 mod commands;
+mod db;
 mod parser;
 
 #[tokio::main]
@@ -11,17 +16,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
     let listener = TcpListener::bind("127.0.0.1:6379").await?;
+    let db: Db = Arc::new(RwLock::new(HashMap::new()));
     info!("Server running on port 6379");
 
     loop {
         let (socket, _) = listener.accept().await?;
+        let db_thread = Arc::clone(&db);
         tokio::spawn(async move {
-            handle_client(socket).await;
+            handle_client(socket, db_thread).await;
         });
     }
 }
 
-async fn handle_client(mut socket: tokio::net::TcpStream) {
+async fn handle_client(mut socket: tokio::net::TcpStream, db: Db) {
     info!("Accepted new connection");
 
     let mut buf = vec![0; 1024];
@@ -44,7 +51,7 @@ async fn handle_client(mut socket: tokio::net::TcpStream) {
         match parser::parse_commands(data) {
             Ok(parsed_commands) => {
                 for command in parsed_commands {
-                    let response = commands::process_command(command.join(" "));
+                    let response = commands::process_command(command.join(" "), &db).await;
                     if let Err(_) = socket.write_all(response.as_bytes()).await {
                         break;
                     }
