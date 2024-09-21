@@ -52,3 +52,7 @@ OK
 127.0.0.1:6379> GET mykey
 "myvalue"
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
