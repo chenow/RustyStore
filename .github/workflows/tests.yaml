@@ -1,0 +1,28 @@
+name: CI tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build
+      run: cargo build
+
+    - name: Run Rusty Store
+      run: cargo run -- --port 6379 &
+
+    - name: Wait for the server to start
+      run: sleep 2
+
+    - name: Run tests
+      run: cargo test

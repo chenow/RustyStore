@@ -4,6 +4,8 @@
 ![Redis Logo](https://img.shields.io/badge/redis-CC0000.svg?&style=for-the-badge&logo=redis&logoColor=white)
 ![Docker Logo](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
+![CI - Tests](https://github.com/chenow/RustyStore/actions/workflows/tests.yaml/badge.svg)
+
 Rusty Store is a Redis clone implemented in Rust. It leverages the RESP protocol via a TCP server to provide a Redis-compatible key-value store.
 
 ## Features
