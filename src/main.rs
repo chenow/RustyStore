@@ -3,9 +3,9 @@ use env_logger;
 use log::{error, info};
 use std::collections::HashMap;
 use std::sync::Arc;
+
+use tokio;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
-use tokio::sync::RwLock;
 
 mod commands;
 mod db;
@@ -15,8 +15,8 @@ mod parser;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
-    let listener = TcpListener::bind("0.0.0.0:6379").await?;
-    let db: Db = Arc::new(RwLock::new(HashMap::new()));
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:6379").await?;
+    let db: Db = Arc::new(tokio::sync::RwLock::new(HashMap::new()));
     info!("Server running on port 6379");
 
     loop {
