@@ -62,6 +62,8 @@ async fn test_get_set_concurrently() {
             .await
             .expect("Failed to connect to Redis");
 
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
         let value: String = redis::cmd("GET")
             .arg("my_key")
             .query_async(&mut con)
