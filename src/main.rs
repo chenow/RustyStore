@@ -3,6 +3,7 @@ use env_logger;
 use log::{error, info};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::thread::available_parallelism;
 
 use tokio;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -11,16 +12,38 @@ mod commands;
 mod db;
 mod parser;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// Starts the server and logging in a synchronous thread.
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:6379").await?;
+    let listener = std::net::TcpListener::bind("0.0.0.0:6379")?;
     let db: Db = Arc::new(tokio::sync::RwLock::new(HashMap::new()));
+
     info!("Server running on port 6379");
+
+    let max_threads = available_parallelism().unwrap().get();
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(max_threads)
+        .enable_all()
+        .build()?;
+
+    runtime.block_on(async {
+        start_tokio_requests_handling(listener, db).await?;
+        Ok(())
+    })
+}
+
+/// Handles incoming connections with parallelism up to the max number of available threads.
+async fn start_tokio_requests_handling(
+    listener: std::net::TcpListener,
+    db: Db,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let listener = tokio::net::TcpListener::from_std(listener)?;
 
     loop {
         let (socket, _) = listener.accept().await?;
+
+        // Only clones a pointer to the db, not the db itself
         let db_thread = Arc::clone(&db);
         tokio::spawn(async move {
             handle_client(socket, db_thread).await;
