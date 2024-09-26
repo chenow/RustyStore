@@ -9,4 +9,6 @@ make test:
 
 make deploy TAG:
 	docker build -t chenow/rusty-store:$(TAG) .
+	docker tag chenow/rusty-store:$(TAG) chenow/rusty-store:latest
 	docker push chenow/rusty-store:$(TAG)
+	docker push chenow/rusty-store:latest
