@@ -8,6 +8,8 @@
 
 Rusty Store is a Redis clone implemented in Rust. It leverages the RESP protocol via a TCP server to provide a Redis-compatible key-value store.
 
+https://github.com/user-attachments/assets/cf247cee-0b1f-4be0-9ef1-4c612766892c
+
 ## Features
 - **Redis-Compatible**: Works with `redis-cli` and Redis client libraries.
 - **Asynchronous Multithreading**: Handles multiple clients concurrently.
